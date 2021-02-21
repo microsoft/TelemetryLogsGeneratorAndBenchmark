@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "BenchmarkLogGenerator": {
+      "commandName": "Project",
+      "commandLineArgs": "-output:AzureStorage -cc:\"DefaultEndpointsProtocol=https;AccountName=STORAGE_ACCOUNTNAME;AccountKey=KEY;EndpointSuffix=core.windows.net\" "
+    }
+  }
+}
