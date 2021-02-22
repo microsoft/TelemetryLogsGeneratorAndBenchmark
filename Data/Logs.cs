@@ -14,8 +14,8 @@
         };
 
         public const string IngestCommand = "$$IngestionCommand table={0} format={1}";
-        public const string DownloadEvent = "Downloading file path: {0}";
-        public const string IngestionCompletion = "IngestionCompletionEvent: finished ingestion file path: {0}";
+        public const string DownloadEvent = "\"Downloading file path: {0}\"";
+        public const string IngestionCompletion = "\"IngestionCompletionEvent: finished ingestion file path: {0}\"";
         public const string CompletedMessage = "Completion Report (HttpPost.ExecuteAsync): Completed with HttpResponseMessage StatusCode={0}";
 
         public static readonly string[] FileFormats = new string[] { "csv", "json", "parquet", "avro" };
