@@ -37,34 +37,22 @@ namespace BenchmarkLogGenerator
 
             Console.WriteLine("Starting...");
             string containerName = "";
+            string partitionName = "";
             BlobContainerClient container = null;
             if(m_args.outputType == WriterType.AzureStorage)
             {
                 try
                 {
-                    string[] connectionStrings = m_args.blobConnectionString.Split(",");
-                    string blobConnectionString = "";
-                    string partitionName = "";
-                    if (m_args.partition == -1)
-                    {
-                        blobConnectionString = connectionStrings[0];
-                    }
-                    else
-                    {
-                        blobConnectionString = connectionStrings[m_args.partition];
-                        partitionName = $"-p{m_args.partition}";
-                    }
-
+                    partitionName = $"-p{m_args.partition}";
                     var blobOptions = new BlobClientOptions();
                     blobOptions.Retry.MaxRetries = 3;
                     blobOptions.Retry.Mode = RetryMode.Exponential;
 
-                    BlobServiceClient blobClient = new BlobServiceClient(blobConnectionString, blobOptions);
-                    //BlobServiceClient blobClient = new BlobServiceClient(blobConnectionString);
+                    BlobServiceClient blobClient = new BlobServiceClient(m_args.blobConnectionString, blobOptions);
                     containerName = $"logsbenchmark-{m_args.size}{partitionName}".ToLower();
                     var response = blobClient.CreateBlobContainer(containerName);
                     container = response.Value;
-                }
+                }                
                 catch (Exception ex)
                 {
                     var color = Console.ForegroundColor;
@@ -79,6 +67,12 @@ namespace BenchmarkLogGenerator
             if (m_args.outputType == WriterType.LocalDisk && m_args.size == BenchmarkDataSize.HundredTB)
             {
                 Console.WriteLine("For 100TB data size, please use Azure storage outputType.");
+                Environment.Exit(0);
+            }
+
+            if (m_args.outputType == WriterType.EventHub && m_args.size != BenchmarkDataSize.OneGB)
+            {
+                Console.WriteLine("For event hub, data size is restricted to 1 GB.");
                 Environment.Exit(0);
             }
 
