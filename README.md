@@ -15,13 +15,13 @@ Default value is OneGB
 
     `BenchmarkLogGenerator -output:LocalDisk -size:OneGB -localPath:"C:\DATA"`
 
-    `BenchmarkLogGenerator -output:EventHub -eventHubConnection:Endpoint=sb://XYZ.servicebus.windows.net/;EntityPath=EVENTHUBNAME;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=KEYVALUE -size:OneGB"`
+    `BenchmarkLogGenerator -output:EventHub -eventHubConnection:Endpoint=sb://EHNAMESPACE.servicebus.windows.net/;EntityPath=EHNAME;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=KEYVALUE -size:OneGB"`
 
     **Note** – Data size is restricted to 1 GB for event hub.
 
 2. **OneTB size**
 
-    `BenchmarkLogGenerator.exe -output:AzureStorage -size:OneTB -cc: BLOB STORAGE CONN STR`
+    `BenchmarkLogGenerator.exe -output:AzureStorage -size:OneTB -cc:BLOB STORAGE CONN STR`
     `BenchmarkLogGenerator -output:LocalDisk -size:OneTB -localPath:"C:\DATA"`
 
     You can also use below mentioned Azure batch templates to generate 1 TB data, 3 Standard_D32_v3 VMs would be enough to generate 1 TB .
