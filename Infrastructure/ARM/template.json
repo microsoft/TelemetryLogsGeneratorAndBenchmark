@@ -1,0 +1,110 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "defaultValue": "westeurope"
+        },
+        "storageAccountType": {
+            "type": "string",
+            "defaultValue": "Standard_LRS"
+        },
+        "storageKind": {
+            "type": "string",
+            "defaultValue": "BlobStorage"
+        },
+        "accessTier": {
+            "type": "string",
+            "defaultValue": "Hot"
+        },
+        "supportsHttpsTrafficOnly": {
+            "type": "bool",
+            "defaultValue": true
+        },
+        "shards": {
+            "type": "int",
+            "defaultValue": 1
+        },
+        "shardprefix": {
+            "type": "string",
+            "defaultValue": "adxbenchmark"
+        },
+        "batchAccountName": {
+            "type": "string",
+            "defaultValue": "adxbenchmarkbatch"
+        },
+        "batchAccountStorageAccountSuffix": {
+            "type": "string",
+            "defaultValue": "sa"
+        }
+    },
+    "variables": {
+        "batchstorageAccountname": "[concat(parameters('batchAccountName'), parameters('batchAccountStorageAccountSuffix'))]"
+    },
+    "resources": [
+        {
+            "name": "[concat(parameters('shardprefix'),copyIndex(1))]",
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2019-04-01",
+            "location": "[parameters('location')]",
+            "properties": {
+                "accessTier": "[parameters('accessTier')]",
+                "supportsHttpsTrafficOnly": "[parameters('supportsHttpsTrafficOnly')]"
+            },
+            "dependsOn": [
+                
+            ],
+            "sku": {
+                "name": "[parameters('storageAccountType')]"
+            },
+            "kind": "[parameters('storageKind')]",
+            "copy": {
+                "name": "storageForShards",
+                "count": "[parameters('shards')]"
+            }
+        },
+        {
+            "name": "[variables('batchstorageAccountname')]",
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2019-04-01",
+            "location": "[parameters('location')]",
+            "properties": {
+                "accessTier": "[parameters('accessTier')]",
+                "supportsHttpsTrafficOnly": "[parameters('supportsHttpsTrafficOnly')]"
+            },
+            "dependsOn": [
+                
+            ],
+            "sku": {
+                "name": "[parameters('storageAccountType')]"
+            },
+            "kind": "[parameters('storageKind')]"
+        },
+        {
+            "type": "Microsoft.Batch/batchAccounts",
+            "apiVersion": "2020-09-01",
+            "name": "[parameters('batchaccountName')]",
+            "location": "[parameters('location')]",
+            "identity": {
+                "type": "None"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('batchstorageAccountname'))]"
+            ],
+            "properties": {
+                "autoStorage": {
+                    "storageAccountId": "[resourceId('Microsoft.Storage/storageAccounts', variables('batchstorageAccountname'))]"
+                },
+                "poolAllocationMode": "BatchService",
+                "publicNetworkAccess": "Enabled",
+                "encryption": {
+                    "keySource": "Microsoft.Batch"
+                }
+            }
+        }
+    ],
+    "outputs": {
+        
+    }
+}
