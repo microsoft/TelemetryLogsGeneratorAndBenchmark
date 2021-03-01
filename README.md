@@ -47,12 +47,14 @@ Default value is OneGB
 
     c. Create Azure batch pool using following template –
     10 Standard_D64_v3 VMs with 0 to 9 partitions takes approximately 12 hrs to generate 100 TBs of data. 
-    **Note** – Number of VMs should match the number of tasks and partitions in generator-job.json
+   
 
     `az batch pool create --template generator-pool.json`
 
     d. Create batch job using following template –
     Provide 10 storage account connection strings that were created in step 3a and create 10 tasks with 0 to 9 partitions respectively.
+    
+     **Note** – Number of VMs should match the number of tasks and partitions in generator-job.json
 
     `az batch job create --template generator-job.json`
 
