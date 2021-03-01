@@ -11,7 +11,7 @@
     },
     "vmDedicatedCount": {
       "type": "int",
-      "defaultValue": 7,
+      "defaultValue": 3,
       "metadata": {
         "description": "The number of dedicated virtual machines"
       }
