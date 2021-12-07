@@ -1,0 +1,11 @@
+let top_nodes = 
+    Logs
+    | where Timestamp between(datetime(2014-03-08 12:00) .. 6h)
+    | where Level == 'Error'
+    | summarize count() by Node
+    | top 10 by count_
+    | project Node;
+Logs
+| where Timestamp between(datetime(2014-03-08 12:00) .. 6h)
+| where Node in (top_nodes)
+| summarize count() by Level, Node

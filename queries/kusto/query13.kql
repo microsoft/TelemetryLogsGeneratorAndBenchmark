@@ -1,0 +1,7 @@
+Logs
+| where Timestamp between(datetime(2014-03-08 12:00) .. 6h)
+| where Message startswith 'IngestionCompletionEvent'
+| where Source in ('IMAGINEFIRST0', 'CLIMBSTEADY83', 'INTERNALFIRST79', 'WORKWITHIN77', 'ADOPTIONCUSTOMERS81', 'FIVENEARLY85', 
+                    'WHATABOUT98', 'PUBLICBRAINCHILD89', 'WATCHPREVIEW91', 'LATERYEARS87', 'GUTHRIESSCOTT93', 'THISSTORING16')
+| where Properties has 'parquet'
+| summarize MaxRowCount= max(tolong(Properties.rowCount)), percentiles(totimespan(Properties.duration), 50, 90, 95) by Source

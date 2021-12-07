@@ -1,0 +1,19 @@
+let Data =
+    Logs
+    | where Timestamp between(datetime(2014-03-08 12:00) .. 3d)
+    | where Source in ('IMAGINEFIRST0')
+    ;
+let Downloading = 
+    Data 
+    | where Message startswith 'Downloading file path:'
+    | parse Message with * 'path:' path
+    | project DownloadClientRequestId = ClientRequestId, path;
+let IngestionCompletion = 
+    Data
+    | where Message startswith 'IngestionCompletionEvent' 
+    | parse Message with * 'path:' path
+    | project CompleteClientRequestId = ClientRequestId, path;
+Downloading 
+| join hint.shufflekey=path kind=inner (IngestionCompletion) on path
+| where DownloadClientRequestId !=  CompleteClientRequestId
+| count 

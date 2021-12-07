@@ -1,0 +1,10 @@
+Logs
+| where Timestamp between(datetime(2014-03-08) .. 3d) 
+| where Level == 'Error'
+| where Message has 'ArrayTypeMismatch'
+| where Source in ('IMAGINEFIRST0', 'CLIMBSTEADY83', 'INTERNALFIRST79', 'WORKWITHIN77', 'ADOPTIONCUSTOMERS81', 'FIVENEARLY85', 
+                    'WHATABOUT98', 'PUBLICBRAINCHILD89', 'WATCHPREVIEW91', 'LATERYEARS87', 'GUTHRIESSCOTT93', 'THISSTORING16')
+| top-nested of Source by max(1),
+  top-nested 3 of Node by NodeErrors=count(),
+  top-nested 3 of Component with others = 'Other components' by ComponentErrors=count()
+| project Source, Node, Component, NodeErrors, ComponentErrors
