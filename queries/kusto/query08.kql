@@ -1,0 +1,3 @@
+Logs
+| where Timestamp between(datetime(2014-03-08 12:00) .. 6h)
+| summarize Count=count() by Level

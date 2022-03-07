@@ -1,0 +1,5 @@
+Logs
+| where Timestamp between(datetime(2014-03-08 12:00) .. 1h)
+| where Component == "DOWNLOADER"
+| summarize DownloadRate=max(todouble(Properties.compressedSize) / ((totimespan(Properties.downloadDuration) / 1sec))) by Source
+| top 10 by DownloadRate

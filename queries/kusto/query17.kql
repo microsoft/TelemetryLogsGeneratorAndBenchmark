@@ -1,0 +1,12 @@
+let Data = Logs
+    | where Source == 'IMAGINEFIRST0'
+    | where Timestamp between(datetime(2014-03-08 12:00) .. 3d)
+    | where Message startswith 'IngestionCompletionEvent';
+let TopNodesByCPU = Data
+| summarize MaxCPU = max(totimespan(Properties.cpuTime)) by Node
+| order by MaxCPU desc, Node desc
+| take 10
+| project Node;
+Data
+| where Node in (TopNodesByCPU)
+| summarize AverageProcessTimeInSeconds=avg(totimespan(Properties.cpuTime)) by bin(Timestamp, 5m), Node

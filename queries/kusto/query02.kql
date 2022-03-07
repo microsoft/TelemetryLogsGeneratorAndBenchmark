@@ -1,0 +1,4 @@
+Logs
+| where Level == 'Error'
+| where Message has 'safeArrayRankMismatch'
+| count

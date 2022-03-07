@@ -1,0 +1,4 @@
+Logs
+| where Timestamp between(datetime(2014-03-08) .. 12h)
+| where Level == 'Warning' and Message has 'enabled'
+| count
