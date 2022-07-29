@@ -1,0 +1,4 @@
+Logs 
+| where Timestamp between(datetime(2014-03-08 12:00) .. 6h) 
+| where Level == 'Error' 
+| summarize dcount(ClientRequestId) by bin(Timestamp, 1h)  

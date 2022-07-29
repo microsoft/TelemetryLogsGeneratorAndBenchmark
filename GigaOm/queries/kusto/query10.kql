@@ -1,0 +1,5 @@
+Logs
+| where Timestamp between(datetime(2014-03-08) .. 3d) 
+| where Source == 'IMAGINEFIRST0' and Message has 'downloaded'
+| summarize hint.shufflekey=ClientRequestId Count=count() by Component, Level, Node, ClientRequestId
+| top 10 by Count

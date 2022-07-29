@@ -1,0 +1,72 @@
+[
+	{
+		"name": "Timestamp",
+		"type": "TIMESTAMP"
+	},
+	{
+		"name": "Source",
+		"type": "STRING"
+	},
+	{
+		"name": "Node",
+		"type": "STRING"
+	},
+	{
+		"name": "Level",
+		"type": "STRING"
+	},
+	{
+		"name": "Component",
+		"type": "STRING"
+	},
+	{
+		"name": "ClientRequestId",
+		"type": "STRING"
+	},
+	{
+		"name": "Message",
+		"type": "STRING"
+	},
+	{
+		"name": "Properties",
+		"type": "STRING"
+	},
+	{
+		"name": "PropertiesStruct",
+		"type": "STRUCT",
+		"fields": [
+			{
+				"name": "size",
+				"type": "INTEGER"
+			}, 
+			{
+				"name": "format",
+				"type": "STRING"
+			}, 
+			{
+				"name": "rowCount",
+				"type": "INTEGER"
+			}, 
+			{
+				"name":"cpuTime",
+				"type": "TIME"
+			},
+			{
+				"name": "duration",
+				"type": "TIME"
+			},
+			{
+				"name": "compressedSize",
+				"type": "INTEGER"
+			},
+			{
+				"name": "OriginalSize",
+				"type": "INTEGER"
+			},
+			{
+				"name": "downloadDuration",
+				"type": "TIME"
+			}
+		]
+	}
+]

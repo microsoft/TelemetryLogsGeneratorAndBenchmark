@@ -1,0 +1,16 @@
+let Data =
+Logs
+| where Timestamp between(datetime(2014-03-08 12:00) .. 3d) 
+| where Source == 'IMAGINEFIRST0';
+Data
+| where Message startswith '$$IngestionCommand' 
+| parse Message with '$$IngestionCommand table=' Table ' ' *
+| distinct hint.shufflekey=ClientRequestId ClientRequestId, Table
+| join kind=inner hint.shufflekey=ClientRequestId (
+    Data
+    | where Message startswith 'IngestionCompletionEvent'
+) on ClientRequestId
+| extend Format=tostring(Properties.format), RowCount=tolong(Properties.rowCount)
+| top-nested of Format by max(1),
+  top-nested 10 of Table by Rows=sum(RowCount)
+| project Format, Table, Rows
