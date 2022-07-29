@@ -86,7 +86,7 @@ platforms = {
 
 
 # Parse the cli arguments
-parser = OptionParser(usage="api-client.py [options]")
+parser = OptionParser(usage="logbenchmark.py [options]")
 
 parser.add_option("-p", "--platform", 
      help="Specifies the API platform being used")

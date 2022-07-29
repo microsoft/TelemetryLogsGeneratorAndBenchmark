@@ -1,6 +1,6 @@
 # LogBenchmark
 
-LogBenchmark is a benchmark for testing a log file workload against Microsoft ADX, Snowflake, and BigQuery.  The Driver has also been ported for ElasticSearch and AWS Athena.
+LogBenchmark is a benchmark for testing a log file workload against Microsoft Azure Data Explorer (ADX), Snowflake, and BigQuery.  The Driver has also been ported for ElasticSearch and AWS Athena.
 
 No warranty is expressed or implied.  Use at your own discretion.
 
@@ -274,9 +274,18 @@ where
 ;
 ```
 
-### Microsoft ADX
+### Azure Data Explorer
+Create a cluster and a database by following [Azure Data Explorer Quickstart](https://docs.microsoft.com/en-us/azure/data-explorer/create-cluster-database-portal#create-a-cluster). Name your database `Benchmark`.
 
-ADX setup instructions go here.
+Create a table.
+```bash
+.create-merge table Logs (Timestamp:datetime, Source:string, Node:string, Level:string, Component:string, ClientRequestId:string, Message:string, Properties:dynamic)
+```
+
+Execute [LightIngest](https://docs.microsoft.com/en-us/azure/data-explorer/lightingest) to load data to Logs table.
+```bash
+LightIngest.exe "https://ingest-CLUSTERNAME.REGION.kusto.windows.net;Federated=true" -database:Benchmark -table:Logs -format:csv -pattern:"*.csv.gz" -dontWait:true -creationTimePattern:"'FOLDERNAME'/yyyy/MM/dd/HH'/'" -sourcePath:"https://BLOBSTORAGENAME.blob.core.windows.net/FOLDERNAME?SASKEY"
+```
 
 ### Benchmark Driver
 
