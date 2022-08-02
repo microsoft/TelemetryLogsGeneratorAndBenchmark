@@ -1,0 +1,6 @@
+Logs
+| where Timestamp between(datetime(2014-03-08 12:00) .. 1h) 
+| where Level=='Error' and  Message startswith 'exception'
+| parse Message with 'Exception=' ExeptionType ';' * 'Message=' ExceptionMessage ';' *  
+| summarize Count=count() by ExeptionType, ExceptionMessage
+| top 10 by Count

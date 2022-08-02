@@ -1,0 +1,8 @@
+Logs
+| where Timestamp between(datetime(2014-03-08) .. 10d) 
+| where Source in ('IMAGINEFIRST0', 'HAVINGCOLUMN182', 'THEREFORESTORE156', 'HOSTNODES207')
+| extend LogType = case(Component in ('CLOUDREPORTSERVER', 'COMMON1', 'FABRICINTEGRATOR', 'REQUESTPROTECTION', 'DIRECTORYSERVICE', 'REPORTSERVERSERVICETRACE', 'ACONFIGURATION', 'EXPLORESERVICEWATCHDOG', 'COMMUNICATIONRUNTIME'), 'Security',
+                        Component in ('REPORTNETWORKING', 'PUSHDATASERVICETRACE', 'HEALTHSERVICE', 'UTILS', 'PROVIDERSCOMMON'), 'Performance',
+                        Component in ('WORKERSERVICECONTENT', 'XMLACOMMON', 'INTEGRATIONDATABASE', 'DATABASEMANAGEMENT'), 'Ingestion',
+                        'Other')
+| summarize Count=count() by LogType

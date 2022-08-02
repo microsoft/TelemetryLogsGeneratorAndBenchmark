@@ -1,0 +1,34 @@
+[
+	{
+		"name": "Timestamp",
+		"type": "TIMESTAMP"
+	},
+	{
+		"name": "Source",
+		"type": "STRING"
+	},
+	{
+		"name": "Node",
+		"type": "STRING"
+	},
+	{
+		"name": "Level",
+		"type": "STRING"
+	},
+	{
+		"name": "Component",
+		"type": "STRING"
+	},
+	{
+		"name": "ClientRequestId",
+		"type": "STRING"
+	},
+	{
+		"name": "Message",
+		"type": "STRING"
+	},
+	{
+		"name": "Properties",
+		"type": "STRING"
+	}
+]

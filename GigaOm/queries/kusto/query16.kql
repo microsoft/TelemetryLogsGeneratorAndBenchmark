@@ -1,0 +1,7 @@
+Logs
+| where Timestamp between (datetime(2014-03-08) .. 3h)
+| where Level in ("Error")
+| summarize (FirstErrorTime, FirstErrorComponent)=arg_min(Timestamp, Component),
+            (LastErrorTime, LastErrorComponent)=arg_max(Timestamp, Component),
+            Errors=count() by Source
+| top 5 by Errors

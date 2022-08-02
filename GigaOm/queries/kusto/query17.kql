@@ -1,0 +1,14 @@
+let Data =
+Logs
+| where Timestamp between(datetime(2014-03-08 12:00) .. 3d) 
+| where Source == 'IMAGINEFIRST0';
+Data
+| where Message startswith '$$IngestionCommand' 
+| parse Message with '$$IngestionCommand table=' Table ' ' *
+| distinct hint.shufflekey=ClientRequestId ClientRequestId, Table
+| join kind=inner hint.shufflekey=ClientRequestId (
+    Data
+    | where Message startswith 'IngestionCompletionEvent'
+) on ClientRequestId
+| summarize TotalRows = sum(tolong(Properties.rowCount)) by Table
+| top 10 by TotalRows
