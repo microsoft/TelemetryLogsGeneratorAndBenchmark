@@ -14,6 +14,7 @@ namespace BenchmarkLogGenerator
     public enum BenchmarkDataSize
     {
         OneGB,
+        TenGB,
         OneTB,
         HundredTB
     }

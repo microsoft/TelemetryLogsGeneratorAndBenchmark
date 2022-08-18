@@ -106,6 +106,8 @@ namespace BenchmarkLogGenerator
             {
                 case BenchmarkDataSize.OneGB:
                     return 1;
+                case BenchmarkDataSize.TenGB:
+                    return 2;
                 case BenchmarkDataSize.OneTB:
                     return 6;
                 case BenchmarkDataSize.HundredTB:
@@ -121,6 +123,8 @@ namespace BenchmarkLogGenerator
             switch (size)
             {
                 case BenchmarkDataSize.OneGB:
+                    return 1;
+                case BenchmarkDataSize.TenGB:
                     return 1;
                 case BenchmarkDataSize.OneTB:
                     return 1;
@@ -155,6 +159,8 @@ namespace BenchmarkLogGenerator
             {
                 case BenchmarkDataSize.OneGB:
                     return 1;
+                case BenchmarkDataSize.TenGB:
+                    return 5;
                 case BenchmarkDataSize.OneTB:
                     return 100;
                 case BenchmarkDataSize.HundredTB:
@@ -169,6 +175,8 @@ namespace BenchmarkLogGenerator
             switch (size)
             {
                 case BenchmarkDataSize.OneGB:
+                    return 1;
+                case BenchmarkDataSize.TenGB:
                     return 1;
                 case BenchmarkDataSize.OneTB:
                     return 1;
@@ -190,7 +198,7 @@ namespace BenchmarkLogGenerator
             esb.AppendLine("-localPath: The root folder");
             esb.AppendLine("-azureStorageAccountConnections: A comma separated list of Azure storage account connections (can be single connection), containers will be created automaticly using the following template: logsBenchmark-{size}-p{partition}");
             esb.AppendLine("-eventHubConnection: The connection string for Azure EventHub");
-            esb.AppendLine("-size: The output size, possible values are OneGB, OneTB, HundredTB. Default is OneGB");
+            esb.AppendLine("-size: The output size, possible values are OneGB, TenGB, OneTB, HundredTB. Default is OneGB");
             esb.AppendLine("-partition: The applicable partition, between -1 to 9, where -1 means single partition. Only relevant for HundredTB size. Default is -1");
             esb.AppendLine();
             CommandLineArgsParser.PrintUsage(esb);

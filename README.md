@@ -4,7 +4,7 @@ This tool supports following configurable command line parameters –
 1. **-output**: This is the location where output should be written to. 
 Supported values are: LocalDisk, AzureStorage, EventHub
 2. **-size**: The data size to be generated. 
-Supported values are: OneGB, OneTB, HundredTB 
+Supported values are: OneGB, TenGB, OneTB, HundredTB 
 Default value is OneGB
 3. **-partition**: The value for data partition, it could be between -1 to 9, where -1 means single partition. Default value is -1. It’s only relevant for HundredTB data size.
 
@@ -18,15 +18,24 @@ Default value is OneGB
     `BenchmarkLogGenerator -output:EventHub -eventHubConnection:Endpoint=sb://EHNAMESPACE.servicebus.windows.net/;EntityPath=EHNAME;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=KEYVALUE -size:OneGB"`
 
     **Note** – Data size is restricted to 1 GB for event hub.
+    **Note** – We host the generated files with default seed value at https://logsbenchmark00.blob.core.windows.net/logsbenchmark-onegb?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=5pjOow5An3%2BTs5mZ%2FyosJBPtDvV7%2FXfDO8pLEeeylVc%3D. Please use Azure Storage Explorer and attach a blob container specifying this URL or leverage AzCopy to download it.
 
-2. **OneTB size**
+2. **TenGB size**
+
+    `BenchmarkLogGenerator.exe -output:AzureStorage -size:TenGB -cc:BLOB STORAGE CONN STR`
+
+    `BenchmarkLogGenerator -output:LocalDisk -size:TenGB -localPath:"C:\DATA"`
+
+    **Note** – We host the generated files with default seed value at https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D. Please use Azure Storage Explorer and attach a blob container specifying this URL or leverage AzCopy to download it.
+
+3. **OneTB size**
 
     `BenchmarkLogGenerator.exe -output:AzureStorage -size:OneTB -cc:BLOB STORAGE CONN STR`
     `BenchmarkLogGenerator -output:LocalDisk -size:OneTB -localPath:"C:\DATA"`
 
     You can also use below mentioned Azure batch templates to generate 1 TB data, 3 Standard_D32_v3 VMs would be enough to generate 1 TB .
 
-3. **HundredTB size**
+4. **HundredTB size**
 
     Use Azure Batch compute to generate 100 TBs of data. Tool has Azure batch templates for generating required batch pools and jobs. 
     Follow these steps to generate 100TBs of data -
