@@ -19,24 +19,19 @@ Default value is OneGB
 
     **Note** – Data size is restricted to 1 GB for event hub.
 
-    **Note** – We host the generated files with default seed value at https://logsbenchmark00.blob.core.windows.net/logsbenchmark-onegb?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=5pjOow5An3%2BTs5mZ%2FyosJBPtDvV7%2FXfDO8pLEeeylVc%3D. Please use Azure Storage Explorer and attach a blob container specifying this URL or leverage AzCopy to download it. If you plan to load the data to an instance of Azure Data Explorer, use the following snippet to do so directly.
+    **Note** – You can also download the generated file directly from https://logsbenchmark00.blob.core.windows.net/logsbenchmark-onegb/chunk_0.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=5pjOow5An3%2BTs5mZ%2FyosJBPtDvV7%2FXfDO8pLEeeylVc%3D. If you plan to load the data to an instance of Azure Data Explorer, use the following snippet to do so directly.
 
     ```kql
     .execute database script <|
-    // Define external table pointing to blob storage.
-    .create-or-alter external table LogsExternal(Timestamp:datetime, Source:string, Node:string, Level:string, Component:string, ClientRequestId:string, Message:string, Properties:dynamic)  
-    kind=storage 
-    partition by (Date:datetime)
-    pathformat = (datetime_pattern("yyyy/MM/dd/HH", Date))  
-    dataformat=csv
-    ( 
-    h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-onegb?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=5pjOow5An3%2BTs5mZ%2FyosJBPtDvV7%2FXfDO8pLEeeylVc%3D'
-    )
-    with (includeHeaders='None', compressed=true)
+    // Define table schema.
+    .create-merge table Logs(Timestamp:datetime, Source:string, Node:string, Level:string, Component:string, ClientRequestId:string, Message:string, Properties:dynamic)  
     //
-    // Ingest data from external table to internal table named Logs. 
-    // The command executes asynchronously in the background. Use ".show operations <<OperationId>>" to monitor its progress.
-    .set-or-replace async Logs <| external_table('LogsExternal')
+    // Load data. The command will execute asynchronously in the background. Use ".show operations <<OperationId>>" to monitor its progress.
+    .ingest async into table Logs 
+    (
+    h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-onegb/chunk_0.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=5pjOow5An3%2BTs5mZ%2FyosJBPtDvV7%2FXfDO8pLEeeylVc%3D'
+    )
+    with (format='csv')
     ``` 
 
 2. **TenGB size**
@@ -45,24 +40,28 @@ Default value is OneGB
 
     `BenchmarkLogGenerator -output:LocalDisk -size:TenGB -localPath:"C:\DATA"`
 
-    **Note** – We host the generated files with default seed value at https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D. Please use Azure Storage Explorer and attach a blob container specifying this URL or leverage AzCopy to download it. If you plan to load the data to an instance of Azure Data Explorer, use the following snippet to do so directly.
+    **Note** – You can also download the generated files directly from https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/chunk_{0..9}.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D. You must modify the `{0..9}` specifying only one number at a time. If you plan to load the data to an instance of Azure Data Explorer, use the following snippet to do so directly.
 
     ```kql
     .execute database script <|
-    // Define external table pointing to blob storage.
-    .create-or-alter external table LogsExternal(Timestamp:datetime, Source:string, Node:string, Level:string, Component:string, ClientRequestId:string, Message:string, Properties:dynamic)  
-    kind=storage 
-    partition by (Date:datetime)
-    pathformat = (datetime_pattern("yyyy/MM/dd/HH", Date))  
-    dataformat=csv
-    ( 
-    h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D'
-    )
-    with (includeHeaders='None', compressed=true)
+    // Define table schema.
+    .create-merge table Logs(Timestamp:datetime, Source:string, Node:string, Level:string, Component:string, ClientRequestId:string, Message:string, Properties:dynamic)  
     //
-    // Ingest data from external table to internal table named Logs. 
-    // The command executes asynchronously in the background. Use ".show operations <<OperationId>>" to monitor its progress.
-    .set-or-replace async Logs <| external_table('LogsExternal')
+    // Load data. The command will execute asynchronously in the background. Use ".show operations <<OperationId>>" to monitor its progress.
+    .ingest async into table Logs 
+    (
+    h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/chunk_0.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D',
+    h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/chunk_1.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D',
+    h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/chunk_2.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D',
+    h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/chunk_3.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D',
+    h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/chunk_4.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D',
+    h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/chunk_5.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D',
+    h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/chunk_6.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D',
+    h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/chunk_7.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D',
+    h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/chunk_8.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D',
+    h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/chunk_9.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D'
+    )
+    with (format='csv')
     ```
 
 3. **OneTB size**
