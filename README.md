@@ -19,19 +19,38 @@ Default value is OneGB
 
     **Note** – Data size is restricted to 1 GB for event hub.
 
-    **Note** – You can also download the generated file directly from https://logsbenchmark00.blob.core.windows.net/logsbenchmark-onegb/chunk_0.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=5pjOow5An3%2BTs5mZ%2FyosJBPtDvV7%2FXfDO8pLEeeylVc%3D. If you plan to load the data to an instance of Azure Data Explorer, use the following snippet to do so directly.
+    **Note** – You can also download the generated files directly from Blob Storage using URLs from the below snippet. If you plan to load the data to an instance of Azure Data Explorer, use the following snippet to do so directly.
 
     ```kql
-    .execute database script <|
-    // Define table schema.
-    .create-merge table Logs(Timestamp:datetime, Source:string, Node:string, Level:string, Component:string, ClientRequestId:string, Message:string, Properties:dynamic)  
+    .execute database script with (ContinueOnErrors=true) <|
     //
-    // Load data. The command will execute asynchronously in the background. Use ".show operations <<OperationId>>" to monitor its progress.
-    .ingest async into table Logs 
-    (
-    h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-onegb/chunk_0.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=5pjOow5An3%2BTs5mZ%2FyosJBPtDvV7%2FXfDO8pLEeeylVc%3D'
-    )
-    with (format='csv')
+    // Define table schema.
+    .create-merge table Logs(Timestamp:datetime, Source:string, Node:string, Level:string, Component:string, ClientRequestId:string, Message:string, Properties:dynamic) 
+    //
+    // As we will be loading data from 2014, we need to ensure that retention policy is set to a period greater than "now() - 2014". 15 years should suffice.
+    .alter-merge table Logs policy retention softdelete = 5475d recoverability = enabled
+    //
+    // Also, for better query performance, we want all data to land in hot cache and hence caching policy needs to be adjusted, too.
+    // If running on free cluster, this command will fail but the rest of the script will succeed. In free cluster, all data is in hot cache.
+    .alter table Logs policy caching hot = 5475d
+    //
+    // Load data. To support the same script on free and regular (paid) cluster we mixed asynchronous commands with several synchronous ones to introduce forced latency and prevent overloading free cluster.
+    // On free cluster, it will take about 20 seconds; on regular paid cluster most likely just a few seconds.
+    // Once the command completes, verify that your table has 3,834,012 rows by running "Logs | count".
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-onegb/2014/03/08/00/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=5pjOow5An3%2BTs5mZ%2FyosJBPtDvV7%2FXfDO8pLEeeylVc%3D') with (format='csv', creationTime='2014-03-08T00:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-onegb/2014/03/08/01/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=5pjOow5An3%2BTs5mZ%2FyosJBPtDvV7%2FXfDO8pLEeeylVc%3D') with (format='csv', creationTime='2014-03-08T01:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-onegb/2014/03/08/02/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=5pjOow5An3%2BTs5mZ%2FyosJBPtDvV7%2FXfDO8pLEeeylVc%3D') with (format='csv', creationTime='2014-03-08T02:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-onegb/2014/03/08/03/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=5pjOow5An3%2BTs5mZ%2FyosJBPtDvV7%2FXfDO8pLEeeylVc%3D') with (format='csv', creationTime='2014-03-08T03:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-onegb/2014/03/08/04/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=5pjOow5An3%2BTs5mZ%2FyosJBPtDvV7%2FXfDO8pLEeeylVc%3D') with (format='csv', creationTime='2014-03-08T04:00:00Z')
+    .ingest       into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-onegb/2014/03/08/05/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=5pjOow5An3%2BTs5mZ%2FyosJBPtDvV7%2FXfDO8pLEeeylVc%3D') with (format='csv', creationTime='2014-03-08T05:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-onegb/2014/03/08/06/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=5pjOow5An3%2BTs5mZ%2FyosJBPtDvV7%2FXfDO8pLEeeylVc%3D') with (format='csv', creationTime='2014-03-08T06:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-onegb/2014/03/08/07/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=5pjOow5An3%2BTs5mZ%2FyosJBPtDvV7%2FXfDO8pLEeeylVc%3D') with (format='csv', creationTime='2014-03-08T07:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-onegb/2014/03/08/08/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=5pjOow5An3%2BTs5mZ%2FyosJBPtDvV7%2FXfDO8pLEeeylVc%3D') with (format='csv', creationTime='2014-03-08T08:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-onegb/2014/03/08/09/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=5pjOow5An3%2BTs5mZ%2FyosJBPtDvV7%2FXfDO8pLEeeylVc%3D') with (format='csv', creationTime='2014-03-08T09:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-onegb/2014/03/08/10/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=5pjOow5An3%2BTs5mZ%2FyosJBPtDvV7%2FXfDO8pLEeeylVc%3D') with (format='csv', creationTime='2014-03-08T10:00:00Z')
+    .ingest       into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-onegb/2014/03/08/11/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=5pjOow5An3%2BTs5mZ%2FyosJBPtDvV7%2FXfDO8pLEeeylVc%3D') with (format='csv', creationTime='2014-03-08T11:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-onegb/2014/03/08/12/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=5pjOow5An3%2BTs5mZ%2FyosJBPtDvV7%2FXfDO8pLEeeylVc%3D') with (format='csv', creationTime='2014-03-08T12:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-onegb/2014/03/08/13/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=5pjOow5An3%2BTs5mZ%2FyosJBPtDvV7%2FXfDO8pLEeeylVc%3D') with (format='csv', creationTime='2014-03-08T13:00:00Z')
     ``` 
 
 2. **TenGB size**
@@ -40,28 +59,62 @@ Default value is OneGB
 
     `BenchmarkLogGenerator -output:LocalDisk -size:TenGB -localPath:"C:\DATA"`
 
-    **Note** – You can also download the generated files directly from https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/chunk_{0..9}.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D. You must modify the `{0..9}` specifying only one number at a time. If you plan to load the data to an instance of Azure Data Explorer, use the following snippet to do so directly.
+    **Note** – You can also download the generated files directly from Blob Storage using URLs from the below snippet. If you plan to load the data to an instance of Azure Data Explorer, use the following snippet to do so directly.
 
     ```kql
-    .execute database script <|
-    // Define table schema.
-    .create-merge table Logs(Timestamp:datetime, Source:string, Node:string, Level:string, Component:string, ClientRequestId:string, Message:string, Properties:dynamic)  
+    .execute database script with (ContinueOnErrors=true) <|
     //
-    // Load data. The command will execute asynchronously in the background. Use ".show operations <<OperationId>>" to monitor its progress.
-    .ingest async into table Logs 
-    (
-    h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/chunk_0.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D',
-    h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/chunk_1.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D',
-    h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/chunk_2.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D',
-    h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/chunk_3.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D',
-    h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/chunk_4.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D',
-    h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/chunk_5.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D',
-    h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/chunk_6.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D',
-    h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/chunk_7.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D',
-    h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/chunk_8.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D',
-    h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/chunk_9.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D'
-    )
-    with (format='csv')
+    // Define table schema.
+    .create-merge table Logs(Timestamp:datetime, Source:string, Node:string, Level:string, Component:string, ClientRequestId:string, Message:string, Properties:dynamic) 
+    //
+    // As we will be loading data from 2014, we need to ensure that retention policy is set to a period greater than "now() - 2014". 15 years should suffice.
+    .alter-merge table Logs policy retention softdelete = 5475d recoverability = enabled
+    //
+    // Also, for better query performance, we want all data to land in hot cache and hence caching policy needs to be adjusted, too.
+    // If running on free cluster, this command will fail but the rest of the script will succeed. In free cluster, all data is in hot cache.
+    .alter table Logs policy caching hot = 5475d
+    //
+    // Load data. To support the same script on free and regular (paid) cluster we mixed asynchronous commands with several synchronous ones to introduce forced latency and prevent overloading free cluster.
+    // On free cluster, it will take about 3 minutes; on regular paid cluster most likely less than a minute.
+    // Once the command completes, verify that your table has 45,286,250 rows by running "Logs | count".
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/08/00/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-08T00:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/08/01/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-08T01:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/08/02/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-08T02:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/08/03/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-08T03:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/08/04/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-08T04:00:00Z')
+    .ingest       into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/08/05/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-08T05:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/08/06/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-08T06:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/08/07/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-08T07:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/08/08/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-08T08:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/08/09/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-08T09:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/08/10/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-08T10:00:00Z')
+    .ingest       into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/08/11/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-08T11:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/08/12/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-08T12:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/08/13/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-08T13:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/08/14/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-08T14:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/08/15/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-08T15:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/08/16/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-08T16:00:00Z')
+    .ingest       into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/08/17/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-08T17:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/08/18/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-08T18:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/08/19/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-08T19:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/08/20/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-08T20:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/08/21/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-08T21:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/08/22/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-08T22:00:00Z')
+    .ingest       into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/08/23/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-08T23:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/09/00/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-09T00:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/09/01/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-09T01:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/09/02/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-09T02:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/09/03/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-09T03:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/09/04/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-09T04:00:00Z')
+    .ingest       into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/09/05/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-09T05:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/09/06/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-09T06:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/09/07/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-09T07:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/09/08/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-09T08:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/09/09/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-09T09:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/09/10/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-09T10:00:00Z')
+    .ingest       into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/09/11/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-09T11:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/09/12/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-09T12:00:00Z')
+    .ingest async into table Logs (h'https://logsbenchmark00.blob.core.windows.net/logsbenchmark-tengb/2014/03/09/13/data.csv.gz?sp=rl&st=2022-08-18T00:00:00Z&se=2030-01-01T00:00:00Z&spr=https&sv=2021-06-08&sr=c&sig=AcZvWrUj9EHWoV6%2BIKeo3dC12f06iq%2Fo42IRI6h4t8o%3D') with (format='csv', creationTime='2014-03-09T13:00:00Z')
     ```
 
 3. **OneTB size**
